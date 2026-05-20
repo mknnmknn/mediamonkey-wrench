@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Workshop{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='studio.css') }}">
+</head>
+<body>
+  <header class="ws-header">
+    <a href="/" class="ws-brand">Workshop</a>
+    <nav class="ws-nav">
+      <a href="/recap"  class="{% if active == 'recap'  %}is-active{% endif %}">Recap</a>
+      <a href="/artist" class="{% if active == 'artist' %}is-active{% endif %}">Artist</a>
+      <span class="ws-nav-stub" title="future: plugin prototype workbench">Bench</span>
+    </nav>
+  </header>
+
+  <main class="ws-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="ws-footer">
+    <span>mediamonkey-wrench · localhost only · single user</span>
+  </footer>
+
+  <script>
+    // Instant UI feedback on form submit: swap button text and dim it, so
+    // it's obvious the click landed even when the server is doing 30s of
+    // iTunes / Last.fm / WP work in the background.
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', () => {
+        const btn = form.querySelector('button[type=submit]');
+        if (!btn) return;
+        const busy = btn.dataset.busyText || 'Working…';
+        btn.dataset.origText = btn.textContent;
+        btn.textContent = busy;
+        btn.classList.add('is-busy');
+      });
+    });
+  </script>
+</body>
+</html>

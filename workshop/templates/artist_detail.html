@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% set active = "artist" %}
+{% block title %}Workshop · {{ name }}{% endblock %}
+
+{% block content %}
+<section class="ws-section">
+
+  <div class="ws-detail-header">
+    <div>
+      <a href="/artist" class="ws-back">← Search</a>
+      <h1 class="ws-h1">{{ name }}</h1>
+    </div>
+    <div class="ws-mode-toggle">
+      <a class="ws-mode-option {% if mode != 'anywhere' %}is-active{% endif %}"
+         href="/artist/view?name={{ name | urlencode }}&mode=exact">Exact</a>
+      <a class="ws-mode-option {% if mode == 'anywhere' %}is-active{% endif %}"
+         href="/artist/view?name={{ name | urlencode }}&mode=anywhere">Anywhere</a>
+    </div>
+  </div>
+
+  {% if not overview %}
+    <p class="ws-note">No plays found for "<strong>{{ name }}</strong>" in <strong>{{ mode }}</strong> mode.</p>
+  {% else %}
+
+  <div class="ws-stat-grid">
+    <div class="ws-stat">
+      <div class="ws-stat-val">{{ "{:,}".format(overview.plays) }}</div>
+      <div class="ws-stat-lbl">plays</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">{{ overview.unique_tracks }}</div>
+      <div class="ws-stat-lbl">tracks</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">{{ overview.unique_albums }}</div>
+      <div class="ws-stat-lbl">albums</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">{{ "%.0f"|format(overview.minutes / 60) }}</div>
+      <div class="ws-stat-lbl">hours</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">{{ overview.five_star_tracks }}</div>
+      <div class="ws-stat-lbl">5★</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">{% if overview.first_played %}{{ overview.first_played.strftime('%b %Y') }}{% else %}—{% endif %}</div>
+      <div class="ws-stat-lbl">first played</div>
+    </div>
+  </div>
+
+  <h2 class="ws-h2">Plays over time <span class="ws-h2-note">({{ granularity }}ly)</span></h2>
+  <div class="ws-chart-panel">
+    <div class="ws-chart-legend">
+      <span class="ws-legend-item">
+        <span class="ws-legend-swatch ws-legend-bg"></span>
+        Plays per {{ granularity }} <span class="ws-legend-peak">(peak {{ chart_peaks.plays_peak }})</span>
+      </span>
+      <span class="ws-legend-item">
+        <span class="ws-legend-swatch ws-legend-fg"></span>
+        Cumulative tracks discovered <span class="ws-legend-peak">(total {{ chart_peaks.tracks_total }})</span>
+      </span>
+    </div>
+    {{ plays_chart | safe }}
+  </div>
+
+  <h2 class="ws-h2">Top tracks</h2>
+  <ol class="ws-track-list">
+    {% for t in shown_tracks %}
+    <li>
+      {% if t.Rating == 100 %}<span class="ws-star" title="5★">★</span>{% endif %}
+      <em>{{ t.SongTitle }}</em>
+      {% if t.Album %}<span class="ws-track-album">— {{ t.Album }}</span>{% endif %}
+      <span class="ws-track-plays">· {{ t.plays }} play{{ '' if t.plays == 1 else 's' }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  {% if trailing_more %}
+    <p class="ws-note">{{ trailing_more }}</p>
+  {% endif %}
+
+  <h2 class="ws-h2">Top albums</h2>
+  <div class="ws-album-grid">
+    {% for a in top_albums %}
+    <figure class="ws-album-card">
+      {% if a.cover_url %}
+        {% if a.bandcamp_url %}
+        <a href="{{ a.bandcamp_url }}" target="_blank" rel="noopener">
+          <img src="{{ a.cover_url }}" alt="{{ a.art_credit }} – {{ a.album }}" loading="lazy">
+        </a>
+        {% else %}
+        <img src="{{ a.cover_url }}" alt="{{ a.art_credit }} – {{ a.album }}" loading="lazy">
+        {% endif %}
+      {% else %}
+        <div class="ws-album-placeholder">
+          {{ (a.art_credit or '?')[:2].upper() }}
+        </div>
+      {% endif %}
+      <figcaption>
+        {% if a.art_credit and a.art_credit != name %}
+          <div class="ws-album-credit">{{ a.art_credit }}</div>
+        {% endif %}
+        <div class="ws-album-title">
+          {% if a.bandcamp_url %}
+            <a href="{{ a.bandcamp_url }}" target="_blank" rel="noopener"><em>{{ a.album }}</em></a>
+          {% else %}
+            <em>{{ a.album }}</em>
+          {% endif %}
+        </div>
+        <div class="ws-album-stats">{{ a.plays }} plays · {{ a.tracks_played }} tracks</div>
+      </figcaption>
+    </figure>
+    {% endfor %}
+  </div>
+
+  <h2 class="ws-h2">Diversity <span class="ws-h2-note">— how concentrated is the listening?</span></h2>
+  <p class="ws-diversity-line">
+    {% if diversity.total_tracks <= 5 %}
+      Only {{ diversity.total_tracks }} distinct track{{ '' if diversity.total_tracks == 1 else 's' }} played; not enough catalog to talk meaningfully about concentration.
+    {% else %}
+      <strong>Top 5 tracks</strong> account for <strong>{{ "%.0f"|format(diversity.top_5_pct) }}%</strong> of plays.
+      {% if diversity.total_tracks >= 10 %}
+        Top 10 → <strong>{{ "%.0f"|format(diversity.top_10_pct) }}%</strong>.
+      {% endif %}
+      {% if diversity.total_tracks >= 20 %}
+        Top 20 → <strong>{{ "%.0f"|format(diversity.top_20_pct) }}%</strong>.
+      {% endif %}
+      {% if diversity.half_at_n %}
+        Half of all plays come from the top <strong>{{ diversity.half_at_n }}</strong> track{{ '' if diversity.half_at_n == 1 else 's' }} (of {{ diversity.total_tracks }} total).
+      {% endif %}
+    {% endif %}
+  </p>
+  <div class="ws-chart-panel ws-chart-diversity">
+    {{ diversity_chart | safe }}
+  </div>
+
+  {% if five_star %}
+  <h2 class="ws-h2">5★ tracks</h2>
+  <ul class="ws-track-list ws-track-list-flat">
+    {% for t in five_star %}
+    <li>
+      <span class="ws-star">★</span>
+      <em>{{ t.SongTitle }}</em>
+      {% if t.Album %}<span class="ws-track-album">— {{ t.Album }}</span>{% endif %}
+      <span class="ws-track-plays">· {{ t.plays }} play{{ '' if t.plays == 1 else 's' }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if mode == 'anywhere' and appearances %}
+  <h2 class="ws-h2">Other appearances</h2>
+  <p class="ws-note">Tracks where <strong>{{ name }}</strong> shares the artist credit with someone else.</p>
+  <ul class="ws-track-list ws-track-list-flat">
+    {% for t in appearances %}
+    <li>
+      <strong>{{ t.Artist }}</strong> —
+      <em>{{ t.SongTitle }}</em>
+      {% if t.Album %}<span class="ws-track-album">({{ t.Album }})</span>{% endif %}
+      <span class="ws-track-plays">· {{ t.plays }} play{{ '' if t.plays == 1 else 's' }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% endif %}{# end if overview #}
+</section>
+{% endblock %}

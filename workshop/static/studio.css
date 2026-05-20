@@ -1,0 +1,505 @@
+/* Workshop — a small clean serif-tinted developer-tool theme. */
+
+:root {
+  --bg:          #faf8f5;
+  --surface:     #ffffff;
+  --ink:         #1d1d1f;
+  --ink-2:       #555;
+  --ink-3:       #888;
+  --rule:        #e7e3dc;
+  --accent:      #6a4d2b;
+  --accent-soft: #e7d8be;
+  --accent-2:    #8e5572;   /* plum — used for overlays on the artist page */
+  --warn:        #b04a2a;
+  --shadow:      0 1px 0 rgba(0,0,0,.04), 0 8px 24px -16px rgba(0,0,0,.18);
+  --serif:       Georgia, "Iowan Old Style", "Apple Garamond", serif;
+  --sans:        -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+  --mono:        ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.55 var(--sans);
+}
+
+/* -- header / nav -- */
+
+.ws-header {
+  display: flex; align-items: baseline; gap: 1.5em;
+  padding: 1em 2em;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+}
+.ws-brand {
+  font-family: var(--serif);
+  font-size: 1.4em; font-weight: 600;
+  color: var(--ink); text-decoration: none;
+  letter-spacing: -.01em;
+}
+.ws-nav { display: flex; gap: 1.2em; font-size: .95em }
+.ws-nav a, .ws-nav-stub {
+  color: var(--ink-2); text-decoration: none;
+  padding-bottom: .2em;
+  border-bottom: 2px solid transparent;
+}
+.ws-nav a:hover { color: var(--ink) }
+.ws-nav .is-active { color: var(--ink); border-color: var(--accent) }
+.ws-nav-stub { color: var(--ink-3); cursor: default; font-style: italic }
+
+/* -- main / footer -- */
+
+.ws-main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2em 2em 4em;
+}
+.ws-footer {
+  font-size: .8em; color: var(--ink-3);
+  text-align: center; padding: 2em;
+  border-top: 1px solid var(--rule);
+}
+
+/* -- section / typography -- */
+
+.ws-section {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 2em 2.2em;
+  box-shadow: var(--shadow);
+}
+.ws-h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.8em;
+  margin: 0 0 .6em;
+  letter-spacing: -.015em;
+}
+.ws-lede { color: var(--ink-2); margin: 0 0 1.5em }
+.ws-note { color: var(--ink-3); font-size: .9em; margin: 1em 0 0 }
+
+/* -- forms -- */
+
+.ws-form { display: flex; flex-direction: column; gap: 1.2em }
+
+.ws-row { display: flex; gap: 1.2em; flex-wrap: wrap }
+
+.ws-field { display: flex; flex-direction: column; gap: .3em; min-width: 140px }
+.ws-field-label { font-size: .85em; color: var(--ink-2); font-weight: 500 }
+.ws-field select {
+  font: inherit; padding: .5em .7em;
+  border: 1px solid var(--rule); border-radius: 6px;
+  background: var(--surface);
+}
+
+.ws-checkbox { display: flex; align-items: center; gap: .5em; color: var(--ink-2) }
+.ws-checkbox input { accent-color: var(--accent) }
+
+.ws-mode-toggle {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f3efe7;
+}
+.ws-mode-option {
+  display: flex; align-items: center;
+  padding: .5em 1em;
+  font-size: .9em;
+  cursor: pointer;
+  color: var(--ink-2);
+  border-right: 1px solid var(--rule);
+}
+.ws-mode-option:last-child { border-right: none }
+.ws-mode-option input { position: absolute; opacity: 0; pointer-events: none }
+.ws-mode-option:has(input:checked) {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.ws-mode-fields {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ws-mode-fields input[type=date] {
+  font: inherit;
+  padding: .5em .7em;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.ws-actions {
+  display: flex; gap: .6em; flex-wrap: wrap;
+  margin-top: .5em;
+}
+
+.ws-btn {
+  font: inherit;
+  padding: .55em 1.1em;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ws-btn:hover { border-color: var(--ink-2) }
+.ws-btn-primary {
+  background: var(--accent); color: #fff;
+  border-color: var(--accent);
+}
+.ws-btn-primary:hover { background: #553e22 }
+.ws-btn.is-busy {
+  opacity: .7;
+  cursor: progress;
+  pointer-events: none;
+}
+
+/* -- candidate cards -- */
+
+.ws-cards {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; gap: .8em;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.ws-card {
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--surface);
+  transition: border-color .15s, background .15s;
+}
+.ws-card:hover { border-color: var(--accent) }
+.ws-card label {
+  display: flex; gap: .9em; align-items: flex-start;
+  padding: 1em 1.1em;
+  cursor: pointer;
+}
+.ws-card input[type=checkbox] {
+  margin-top: .3em;
+  width: 1.05em; height: 1.05em;
+  accent-color: var(--accent);
+}
+.ws-card-title {
+  font-family: var(--serif);
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-bottom: .15em;
+}
+.ws-card-stats {
+  font-size: .87em;
+  color: var(--ink-3);
+}
+
+/* checkbox-state visual: lightly highlight checked cards */
+.ws-card:has(input:checked) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* -- preview pane -- */
+
+.ws-preview {
+  width: 100%;
+  height: 720px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+  margin: 1.2em 0;
+}
+
+.ws-summary-row {
+  display: flex; justify-content: space-between; gap: 1.5em; flex-wrap: wrap;
+  align-items: flex-start;
+  padding: 1em 1.2em;
+  background: var(--accent-soft);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  margin-bottom: 1.2em;
+}
+.ws-summary { font-size: .92em; display: grid; gap: .25em }
+.ws-summary-actions { margin: 0 }
+
+/* -- diagnostic strips -- */
+
+.ws-diag {
+  font-family: var(--mono);
+  font-size: .85em;
+  color: var(--ink-2);
+  background: #f3efe7;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: .7em 1em;
+  margin-bottom: 1.4em;
+}
+
+/* -- run log -- */
+
+.ws-log {
+  margin-top: 1.6em;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0 1em;
+}
+.ws-log summary {
+  padding: .8em 0;
+  cursor: pointer;
+  color: var(--ink-2);
+  font-size: .9em;
+}
+.ws-log pre {
+  font: 12.5px/1.45 var(--mono);
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0 0 1em;
+  margin: 0;
+}
+
+/* -- artist search results -- */
+
+.ws-h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.25em;
+  margin: 2em 0 .5em;
+  letter-spacing: -.01em;
+}
+.ws-h2-note { font-size: .7em; color: var(--ink-3); font-weight: 400; font-style: italic }
+
+.ws-result-list {
+  list-style: none; padding: 0; margin: 1em 0;
+  display: grid; gap: .5em;
+}
+.ws-result {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.ws-result:hover { border-color: var(--accent) }
+.ws-result-link {
+  display: block;
+  padding: .8em 1em;
+  text-decoration: none;
+  color: var(--ink);
+}
+.ws-result-name {
+  font-family: var(--serif);
+  font-size: 1.05em;
+  font-weight: 600;
+  margin-bottom: .15em;
+}
+.ws-result-stats { font-size: .85em; color: var(--ink-3) }
+
+.ws-mode-fields input[type=text] {
+  font: inherit;
+  padding: .5em .7em;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+  width: 100%;
+}
+.ws-form input[type=text] {
+  font: inherit;
+  padding: .5em .7em;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+  width: 100%;
+}
+
+/* -- artist detail header -- */
+
+.ws-detail-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 1em; flex-wrap: wrap;
+  margin-bottom: 1em;
+}
+.ws-back {
+  display: inline-block;
+  font-size: .9em;
+  color: var(--ink-3);
+  text-decoration: none;
+  margin-bottom: .2em;
+}
+.ws-back:hover { color: var(--ink) }
+
+/* Anchor-as-toggle variant of the mode toggle (mode switcher on detail page) */
+.ws-mode-toggle a.ws-mode-option {
+  text-decoration: none;
+  color: var(--ink-2);
+}
+.ws-mode-toggle a.ws-mode-option.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* -- stat grid -- */
+
+.ws-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: .8em;
+  margin: 1em 0 .5em;
+  padding: 1em 1.2em;
+  background: #f7f3eb;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.ws-stat { text-align: center }
+.ws-stat-val {
+  font-family: var(--serif);
+  font-size: 1.4em;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.ws-stat-lbl {
+  font-size: .78em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-top: .15em;
+}
+
+/* -- charts -- */
+
+.ws-chart-panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1em;
+  margin: .5em 0 1em;
+}
+.ws-chart-diversity {
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+/* -- chart legend (plays-over-time, dual series) -- */
+
+.ws-chart-legend {
+  display: flex; gap: 1.5em; flex-wrap: wrap;
+  font-size: .85em;
+  color: var(--ink-2);
+  margin: 0 0 .8em;
+}
+.ws-legend-item { display: flex; align-items: center; gap: .4em }
+.ws-legend-swatch {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 2px;
+}
+.ws-legend-bg { background: var(--accent);   opacity: .55 }
+.ws-legend-fg {
+  background: var(--accent-2);
+  height: 4px;
+  align-self: center;
+  border-radius: 2px;
+}
+.ws-legend-peak { color: var(--ink-3); font-size: .92em; font-style: italic }
+
+/* -- track lists -- */
+
+.ws-track-list {
+  padding-left: 1.4em;
+  margin: .5em 0 0;
+}
+.ws-track-list li { margin: .25em 0; line-height: 1.45 }
+.ws-track-list-flat { padding-left: 0; list-style: none }
+.ws-track-album { color: var(--ink-3); font-size: .92em }
+.ws-track-plays { color: var(--ink-3); font-size: .88em }
+.ws-star { color: var(--accent); font-size: .9em; margin-right: .15em }
+
+/* -- album table -- */
+
+.ws-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: .5em 0 1em;
+}
+.ws-table th, .ws-table td {
+  text-align: left;
+  padding: .45em .8em;
+  border-bottom: 1px solid var(--rule);
+}
+.ws-table th {
+  font-size: .8em;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.ws-table td:nth-child(n+2),
+.ws-table th:nth-child(n+2) { text-align: right; width: 1px; white-space: nowrap }
+.ws-album-credit { color: var(--ink-3); font-size: .9em }
+
+/* -- album grid (3x3 covers + caption) -- */
+
+.ws-album-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4em;
+  margin: 1em 0 1.5em;
+}
+.ws-album-card { margin: 0 }
+.ws-album-card img,
+.ws-album-placeholder {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+  border-radius: 4px;
+}
+.ws-album-placeholder {
+  background: linear-gradient(135deg, #e8e8e8, #bbb);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 2.4em; font-weight: 600; letter-spacing: .05em;
+  font-family: var(--serif);
+}
+.ws-album-card figcaption {
+  margin-top: .5em;
+  font-size: .9em;
+  line-height: 1.35;
+}
+.ws-album-card figcaption a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--accent-soft) }
+.ws-album-card figcaption a:hover { border-bottom-color: var(--accent) }
+.ws-album-card .ws-album-title { margin: .1em 0 .15em }
+.ws-album-card .ws-album-stats { color: var(--ink-3); font-size: .82em }
+.ws-album-card .ws-album-credit {
+  font-size: .8em; color: var(--ink-3); margin-bottom: .15em;
+}
+
+@media (max-width: 720px) {
+  .ws-album-grid { grid-template-columns: repeat(2, 1fr) }
+}
+
+.ws-diversity-line {
+  font-size: 1em;
+  color: var(--ink);
+  background: #f7f3eb;
+  padding: .8em 1.1em;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  margin: .8em 0;
+}
+
+/* -- error block -- */
+
+.ws-error {
+  padding: 1em 1.2em;
+  background: #fbeee9;
+  border: 1px solid #f0c8b8;
+  border-radius: 6px;
+  color: var(--warn);
+  margin-bottom: 1em;
+}
+.ws-error code { font-family: var(--mono); font-size: .85em }

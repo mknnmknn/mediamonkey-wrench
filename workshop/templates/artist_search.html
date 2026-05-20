@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% set active = "artist" %}
+{% block title %}Workshop · Artist{% endblock %}
+
+{% block content %}
+<section class="ws-section">
+  <h1 class="ws-h1">Artist</h1>
+  <p class="ws-lede">
+    Type an artist name. <em>Exact</em> matches solo entries only;
+    <em>Anywhere</em> catches multi-artist credits and guest appearances
+    (e.g. searching <em>Iron &amp; Wine</em> in <em>Anywhere</em> mode also
+    surfaces <em>Calexico &amp; Iron &amp; Wine</em>).
+  </p>
+
+  <form method="get" action="/artist" class="ws-form">
+    <div class="ws-mode-toggle">
+      <label class="ws-mode-option">
+        <input type="radio" name="mode" value="exact" {% if mode != 'anywhere' %}checked{% endif %}>
+        <span>Exact</span>
+      </label>
+      <label class="ws-mode-option">
+        <input type="radio" name="mode" value="anywhere" {% if mode == 'anywhere' %}checked{% endif %}>
+        <span>Anywhere</span>
+      </label>
+    </div>
+
+    <div class="ws-row">
+      <label class="ws-field" style="flex:1">
+        <span class="ws-field-label">Artist</span>
+        <input type="text" name="q" value="{{ q }}" autofocus
+               placeholder="e.g. Iron &amp; Wine">
+      </label>
+      <div class="ws-field" style="align-self:flex-end">
+        <button type="submit" class="ws-btn ws-btn-primary"
+                data-busy-text="Searching…">
+          Search →
+        </button>
+      </div>
+    </div>
+  </form>
+
+  {% if q %}
+    {% if results %}
+      <h2 class="ws-h2">{{ results | length }} match{{ '' if results | length == 1 else 'es' }} for "{{ q }}" ({{ mode }})</h2>
+      <ul class="ws-result-list">
+        {% for r in results %}
+        <li class="ws-result">
+          <a href="/artist/view?name={{ r.name | urlencode }}&mode={{ mode }}" class="ws-result-link">
+            <div class="ws-result-name">{{ r.name }}</div>
+            <div class="ws-result-stats">
+              <strong>{{ "{:,}".format(r.plays) }}</strong> plays ·
+              {{ r.unique_tracks }} tracks
+              {% if r.first_played %}
+                · first {{ r.first_played.strftime('%b %Y') }}
+              {% endif %}
+              {% if r.most_recent %}
+                · last {{ r.most_recent.strftime('%b %d, %Y') }}
+              {% endif %}
+            </div>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="ws-note">No artists found for "<strong>{{ q }}</strong>" in <strong>{{ mode }}</strong> mode.</p>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}
