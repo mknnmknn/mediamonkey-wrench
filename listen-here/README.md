@@ -101,7 +101,23 @@ Rough edges:
   Last.fm backfill covers this: scrobbles are matched to library songs and
   deduped against desktop plays with a per-track variable window, then merged
   through an in-memory view. The MM5 file itself is never written to.
-- No test suite.
+- Test coverage is limited to the UTC/local boundary (see below); everything
+  else is untested.
+
+## Tests
+
+Stdlib `unittest`, no dependencies:
+
+```bash
+python -m unittest discover -s workshop/tests -t .
+```
+
+`workshop/tests/test_timezone.py` pins the UTC/local invariants described
+below. The assertions derive their expectations from the running machine's own
+timezone rules, so they hold anywhere; the DST case skips itself in zones that
+do not observe it. Checked against the pre-fix code by stubbing the conversions
+back to identity — 6 of the 11 fail there, including the MM5-vs-Last.fm
+agreement check in all three months tested.
 
 ## A note on time zones
 
