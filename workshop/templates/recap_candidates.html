@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% set active = "recap" %}
+{% block title %}Workshop · Deep Dives for {{ label }}{% endblock %}
+
+{% block content %}
+<section class="ws-section">
+  <h1 class="ws-h1">Deep Dives — {{ label }}</h1>
+  <p class="ws-lede">
+    Artists who played meaningfully above their 12-month baseline this month.
+    Pick the ones you want to feature; everything else still shows up in Top
+    Artists / Top Albums / Top Tracks. The intro paragraph above the Deep
+    Dives section is yours to edit in WordPress — mention anyone you're
+    still working through there.
+  </p>
+
+  <div class="ws-diag">
+    <strong>Last.fm merge:</strong>
+    {{ diag.matched }} new plays ·
+    {{ diag.duplicate }} dup of MM5 ·
+    {{ diag.unmatched }} unmatched in Songs
+    ({{ diag.in_window }} scrobbles in window)
+  </div>
+
+  <form method="post" action="/recap/compose" class="ws-form">
+    <input type="hidden" name="start_date" value="{{ start_date }}">
+    <input type="hidden" name="end_date"   value="{{ end_date }}">
+    {% if skip_lastfm %}<input type="hidden" name="skip_lastfm" value="true">{% endif %}
+
+    {% if candidates %}
+      <ul class="ws-cards">
+        {% for c in candidates %}
+        <li class="ws-card">
+          <label>
+            <input type="checkbox" name="pick" value="{{ c.art }}">
+            <div class="ws-card-body">
+              <div class="ws-card-title">{{ c.art }}</div>
+              <div class="ws-card-stats">
+                {{ c.plays }} plays · {{ c.tracks }} tracks ·
+                {% if c.monthly_avg >= 1 %}
+                  {{ "%.1f"|format(c.ratio) }}× typical
+                {% else %}
+                  well above usual
+                {% endif %}
+              </div>
+            </div>
+          </label>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="ws-note">No artists cleared the deep-dive threshold this month.</p>
+    {% endif %}
+
+    <div class="ws-actions">
+      <a href="/recap" class="ws-btn">← Change window</a>
+      <button type="submit" class="ws-btn ws-btn-primary"
+              data-busy-text="Composing… (resolves links via iTunes / song.link, can take 30–60s)">
+        Compose preview →
+      </button>
+    </div>
+  </form>
+
+  {% if log %}
+  <details class="ws-log">
+    <summary>Run log</summary>
+    <pre>{{ log }}</pre>
+  </details>
+  {% endif %}
+</section>
+{% endblock %}

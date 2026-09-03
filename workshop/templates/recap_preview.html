@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% set active = "recap" %}
+{% block title %}Workshop · Preview {{ label }}{% endblock %}
+
+{% block content %}
+<section class="ws-section">
+  <h1 class="ws-h1">Preview — {{ label }}</h1>
+
+  <div class="ws-summary-row">
+    <div class="ws-summary">
+      <div><strong>Deep Dives:</strong>
+        {% if picks %}{{ picks | join(', ') }}{% else %}(none){% endif %}
+      </div>
+      <div><strong>Tags resolved for:</strong> {{ artists_to_tag | length }} artists</div>
+      <div><strong>Last.fm:</strong>
+        {{ diag.matched }} merged · {{ diag.duplicate }} dup · {{ diag.unmatched }} unmatched
+      </div>
+    </div>
+
+    <form method="post" action="/recap/draft" class="ws-summary-actions">
+      <input type="hidden" name="start_date" value="{{ start_date }}">
+      <input type="hidden" name="end_date"   value="{{ end_date }}">
+      {% if skip_lastfm %}<input type="hidden" name="skip_lastfm" value="true">{% endif %}
+      {% for p in picks %}
+        <input type="hidden" name="pick" value="{{ p }}">
+      {% endfor %}
+      <button type="submit" class="ws-btn ws-btn-primary"
+              data-busy-text="Drafting to WP… (uploads art + creates tags + posts draft)">
+        Draft to WordPress →
+      </button>
+    </form>
+  </div>
+
+  <p class="ws-note">
+    Below: rendered preview as the post will appear in the WP editor (image
+    sources point at the local Thumbs cache via a proxy route while you're
+    previewing).
+  </p>
+
+  <iframe class="ws-preview" srcdoc="{{ preview_html }}" loading="lazy"></iframe>
+
+  <div class="ws-actions">
+    <a href="javascript:history.back()" class="ws-btn">← Change deep dives</a>
+    <a href="/recap" class="ws-btn">← Change window</a>
+  </div>
+
+  {% if log %}
+  <details class="ws-log">
+    <summary>Run log</summary>
+    <pre>{{ log }}</pre>
+  </details>
+  {% endif %}
+</section>
+{% endblock %}

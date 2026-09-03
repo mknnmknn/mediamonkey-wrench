@@ -22,6 +22,8 @@ secrets.*.json
 top_artists_history.json
 bandcamp_collection.json
 recap_*.html
+# ...but workshop/templates/recap_*.html are source, not generated output.
+!workshop/templates/recap_*.html
 data/
 **/data/
 

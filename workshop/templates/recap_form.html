@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% set active = "recap" %}
+{% block title %}Workshop · Recap{% endblock %}
+
+{% block content %}
+<section class="ws-section">
+  <h1 class="ws-h1">Monthly recap</h1>
+  <p class="ws-lede">
+    Pick a window. The recap engine reads your MM5 library, merges in
+    Last.fm scrobbles, and shows you the Deep Dive candidates so you can
+    choose which artists to feature before composing the post.
+  </p>
+
+  <form method="post" action="/recap/run" class="ws-form">
+    <div class="ws-mode-toggle">
+      <label class="ws-mode-option">
+        <input type="radio" name="_mode" value="month" checked>
+        <span>By month</span>
+      </label>
+      <label class="ws-mode-option">
+        <input type="radio" name="_mode" value="range">
+        <span>Custom range</span>
+      </label>
+    </div>
+
+    <fieldset id="ws-month-fields" data-mode="month" class="ws-mode-fields ws-row">
+      <label class="ws-field">
+        <span class="ws-field-label">Year</span>
+        <select name="year">
+          {% for y in years %}
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="ws-field">
+        <span class="ws-field-label">Month</span>
+        <select name="month">
+          {% for num, name in months %}
+            <option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset id="ws-range-fields" data-mode="range" class="ws-mode-fields ws-row" hidden disabled>
+      <label class="ws-field">
+        <span class="ws-field-label">Start date</span>
+        <input type="date" name="start_date" value="{{ default_start }}">
+      </label>
+
+      <label class="ws-field">
+        <span class="ws-field-label">End date</span>
+        <input type="date" name="end_date" value="{{ default_end }}">
+      </label>
+    </fieldset>
+
+    <label class="ws-checkbox">
+      <input type="checkbox" name="skip_lastfm" value="true">
+      <span>Skip Last.fm scrobble merge (MM5 plays only)</span>
+    </label>
+
+    <div class="ws-actions">
+      <button type="submit" class="ws-btn ws-btn-primary"
+              data-busy-text="Running queries… (Last.fm fetch can take a minute on first run)">
+        Run recap →
+      </button>
+    </div>
+
+    <p class="ws-note">
+      First-run Last.fm backfill can take a few minutes. After that it's incremental.
+      Custom-range windows aren't persisted to the monthly-history file — they're
+      ad-hoc explorations and won't perturb the "Nth time in top 10" badges.
+    </p>
+  </form>
+
+  <script>
+    (() => {
+      const radios = document.querySelectorAll('input[type=radio][name=_mode]');
+      const groups = {
+        month: document.getElementById('ws-month-fields'),
+        range: document.getElementById('ws-range-fields'),
+      };
+      function update() {
+        const sel = document.querySelector('input[type=radio][name=_mode]:checked').value;
+        for (const [k, el] of Object.entries(groups)) {
+          const on = (k === sel);
+          el.hidden = !on;
+          el.disabled = !on;
+        }
+      }
+      radios.forEach(r => r.addEventListener('change', update));
+      update();
+    })();
+  </script>
+</section>
+{% endblock %}

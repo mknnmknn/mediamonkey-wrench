@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set active = "recap" %}
+{% block title %}Workshop · Drafted {{ label }}{% endblock %}
+
+{% block content %}
+<section class="ws-section">
+  <h1 class="ws-h1">Drafted — {{ label }}</h1>
+
+  {% if post_id %}
+    <p class="ws-lede">
+      Posted as draft <code>id={{ post_id }}</code>. Open it in WP, write the
+      Deep Dives commentary, the Top Albums intro, and the Coda, then publish
+      when you're ready.
+    </p>
+
+    <p class="ws-actions">
+      <a class="ws-btn ws-btn-primary" href="{{ edit_url }}" target="_blank" rel="noopener">
+        Open in WP editor →
+      </a>
+      <a class="ws-btn" href="/recap">Start another</a>
+    </p>
+  {% else %}
+    <div class="ws-error">
+      <strong>Draft failed.</strong> Check the run log below and try again.
+    </div>
+    <p class="ws-actions">
+      <a class="ws-btn" href="javascript:history.back()">← Back</a>
+    </p>
+  {% endif %}
+
+  <div class="ws-summary">
+    <div><strong>Tags created/resolved for:</strong> {{ artists_to_tag | length }} artists</div>
+    <div><strong>Last.fm:</strong>
+      {{ diag.matched }} merged · {{ diag.duplicate }} dup · {{ diag.unmatched }} unmatched
+    </div>
+  </div>
+
+  {% if log %}
+  <details class="ws-log" open>
+    <summary>Run log</summary>
+    <pre>{{ log }}</pre>
+  </details>
+  {% endif %}
+</section>
+{% endblock %}
