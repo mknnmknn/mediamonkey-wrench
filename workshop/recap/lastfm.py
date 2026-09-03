@@ -28,7 +28,7 @@ import time
 import urllib.error
 import urllib.parse
 
-from .db import dt_to_ole
+from .db import dt_to_ole, local_dt_to_ole
 from .http import get_json
 from .normalize import normalize
 
@@ -218,8 +218,9 @@ def merge_to_aux(con,
       {"matched": int, "duplicate": int, "unmatched": int,
        "unmatched_examples": list[str], "in_window": int}
     """
-    start_ole = dt_to_ole(window_start)
-    end_ole   = dt_to_ole(window_end)
+    # Window boundaries are local; PlayDate is UTC.
+    start_ole = local_dt_to_ole(window_start)
+    end_ole   = local_dt_to_ole(window_end)
     win_start_uts = int(window_start.timestamp())
     win_end_uts   = int(window_end.timestamp())
 

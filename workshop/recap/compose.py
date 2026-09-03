@@ -21,7 +21,8 @@ from . import blocks as B
 from . import queries as Q
 from .art import ArtResolver, find_album_art_path, index_thumbs
 from .bandcamp import BandcampIndex
-from .db import create_played_all_view, dt_to_ole, ole_to_dt, open_connection
+from .db import (create_played_all_view, local_dt_to_ole, ole_to_local_dt,
+                 open_connection)
 from .lastfm import fetch_scrobbles, merge_to_aux
 from .links import LinkResolver
 from .normalize import htm, normalize, ordinal
@@ -166,8 +167,8 @@ def list_deep_dive_candidates(*,
     )
     create_played_all_view(con)
 
-    start_ole = dt_to_ole(window.start)
-    end_ole   = dt_to_ole(window.end)
+    start_ole = local_dt_to_ole(window.start)
+    end_ole   = local_dt_to_ole(window.end)
     baseline_start_ole = start_ole - 365.0
 
     dd_raw = Q.deep_dive_candidate_rows(con, start_ole, end_ole, baseline_start_ole)
@@ -266,8 +267,8 @@ def compose_recap(*,
     create_played_all_view(con)
 
     # ----- SQL aggregations -----
-    start_ole = dt_to_ole(window.start)
-    end_ole   = dt_to_ole(window.end)
+    start_ole = local_dt_to_ole(window.start)
+    end_ole   = local_dt_to_ole(window.end)
     baseline_start_ole = start_ole - 365.0
     year_before_ole    = start_ole - 365.0
 
@@ -679,7 +680,7 @@ def _render(*, window: RecapWindow, art: ArtResolver, posting: bool,
         grouped5: list[tuple[str, list[dict]]] = []
         by_month5: dict[str, list[dict]] = {}
         for d in five_star_rs:
-            last_dt = ole_to_dt(d["last_before_ole"]) if d.get("last_before_ole") else None
+            last_dt = ole_to_local_dt(d["last_before_ole"]) if d.get("last_before_ole") else None
             label = last_dt.strftime("%B %Y") if last_dt else "First time on record"
             if label not in by_month5:
                 by_month5[label] = []
@@ -715,7 +716,7 @@ def _render(*, window: RecapWindow, art: ArtResolver, posting: bool,
         months_order: list[str] = []; by_month: dict[str, list[dict]] = {}
         years_order:  list[str] = []; by_year:  dict[str, list[dict]] = {}
         for d in comeback_rs:
-            last_dt = ole_to_dt(d["last_before_ole"]) if d.get("last_before_ole") else None
+            last_dt = ole_to_local_dt(d["last_before_ole"]) if d.get("last_before_ole") else None
             m_label = last_dt.strftime("%B %Y") if last_dt else "long ago"
             y_label = last_dt.strftime("%Y") if last_dt else "long ago"
             if m_label not in by_month:

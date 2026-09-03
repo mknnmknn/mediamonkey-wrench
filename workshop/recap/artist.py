@@ -16,7 +16,7 @@ from __future__ import annotations
 import datetime
 import sqlite3
 
-from .db import dt_to_ole, ole_to_dt
+from .db import ole_to_local_dt
 from .normalize import normalize
 
 
@@ -75,8 +75,8 @@ def search_artists(con: sqlite3.Connection, query: str, *,
             "name":          r["name"],
             "plays":         r["plays"],
             "unique_tracks": r["unique_tracks"],
-            "first_played":  ole_to_dt(r["first_ole"]).date() if r["first_ole"] else None,
-            "most_recent":   ole_to_dt(r["last_ole"]).date()  if r["last_ole"]  else None,
+            "first_played":  ole_to_local_dt(r["first_ole"]).date() if r["first_ole"] else None,
+            "most_recent":   ole_to_local_dt(r["last_ole"]).date()  if r["last_ole"]  else None,
         })
     return out
 
@@ -104,8 +104,8 @@ def overview(con: sqlite3.Connection, name: str, mode: str) -> dict | None:
         "plays":            row["plays"],
         "unique_tracks":    row["unique_tracks"],
         "unique_albums":    row["unique_albums"],
-        "first_played":     ole_to_dt(row["first_ole"]).date() if row["first_ole"] else None,
-        "most_recent":      ole_to_dt(row["last_ole"]).date()  if row["last_ole"]  else None,
+        "first_played":     ole_to_local_dt(row["first_ole"]).date() if row["first_ole"] else None,
+        "most_recent":      ole_to_local_dt(row["last_ole"]).date()  if row["last_ole"]  else None,
         "minutes":          row["minutes"] or 0,
         "five_star_tracks": row["five_star_tracks"] or 0,
     }
@@ -128,17 +128,18 @@ def plays_over_time(con: sqlite3.Connection, name: str, mode: str,
     """, (getp(name),)).fetchone()
     if not span or not span["first_ole"]:
         return "month", []
-    first_dt = ole_to_dt(span["first_ole"])
-    last_dt  = ole_to_dt(span["last_ole"])
+    first_dt = ole_to_local_dt(span["first_ole"])
+    last_dt  = ole_to_local_dt(span["last_ole"])
     span_days = (last_dt - first_dt).days
 
     if granularity == "auto":
         granularity = "week" if span_days <= 180 else "month"
 
-    # The OLE-to-datetime conversion in SQL: (PlayDate - 25569) seconds-from-epoch
+    # OLE -> datetime in SQL: (PlayDate - 25569) seconds-from-epoch, then
+    # 'localtime' so buckets land on local calendar days, not UTC ones.
     fmt = "%Y-%m" if granularity == "month" else "%Y-%W"
     rows = con.execute(f"""
-        SELECT strftime(?, datetime((p.PlayDate - 25569)*86400, 'unixepoch')) AS bucket,
+        SELECT strftime(?, datetime((p.PlayDate - 25569)*86400, 'unixepoch', 'localtime')) AS bucket,
                COUNT(*) AS plays,
                MIN(p.PlayDate) AS first_in_bucket
         FROM PlayedAll p JOIN Songs s ON s.ID = p.IDSong
@@ -149,7 +150,7 @@ def plays_over_time(con: sqlite3.Connection, name: str, mode: str,
 
     buckets: list[dict] = []
     for r in rows:
-        first = ole_to_dt(r["first_in_bucket"])
+        first = ole_to_local_dt(r["first_in_bucket"])
         if granularity == "month":
             label = first.strftime("%b %Y")
             period_start = first.replace(day=1).date()
@@ -212,7 +213,7 @@ def cumulative_unique_tracks(con: sqlite3.Connection, name: str, mode: str,
           WHERE s.Artist {op}
           GROUP BY s.ID
         )
-        SELECT strftime(?, datetime((first_ole - 25569)*86400, 'unixepoch')) AS bucket,
+        SELECT strftime(?, datetime((first_ole - 25569)*86400, 'unixepoch', 'localtime')) AS bucket,
                COUNT(*) AS new_tracks
         FROM firsts
         GROUP BY bucket

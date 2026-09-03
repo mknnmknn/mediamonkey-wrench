@@ -28,22 +28,49 @@ Track links resolve to **Bandcamp** when the album is in your collection, then t
 1. Copy `secrets.example.json` to `secrets.json` and fill in:
    - `wp_url`, `wp_user`, `wp_app_password` — generate the app password in WP admin under **Users → Profile → Application Passwords**
    - `bandcamp_user` — your Bandcamp username, used to scrape your owned-album collection
-   - `lastfm_user`, `lastfm_api_key` — optional, reserved for future mobile-play backfill
-2. Shut MediaMonkey down (so its SQLite WAL is flushed), then copy your library DB next to the script:
+   - `lastfm_user`, `lastfm_api_key` — optional. When present, scrobbles are
+     pulled and merged in to cover mobile/portable plays MediaMonkey never sees.
+2. Shut MediaMonkey down (so nothing is mid-write), then copy your library DB
+   into this directory. **Check where your DB actually is first** — the
+   `%APPDATA%` path is only the default, and a leftover stub often sits there
+   even when the real library lives elsewhere. The authoritative answer is the
+   `DBName=` line in `%APPDATA%\MediaMonkey5\MediaMonkey.ini`:
    ```
-   cp "%APPDATA%\MediaMonkey5\MM5.DB" .
+   grep -i DBName "%APPDATA%\MediaMonkey5\MediaMonkey.ini"
+   cp "<the path DBName points at>" listen-here/MM5.DB
    ```
-   If you've moved your DB elsewhere, look at the `DBName=` line in `MediaMonkey.ini`. The script reads `MM5.DB` from its own directory.
+   Sanity-check the copy: it should be a few hundred MB, and
+   `select max(PlayDate) from Played` should land near your last listen. The
+   tools read `listen-here/MM5.DB` and open it read-only — your live library is
+   never touched.
 
 ## Usage
 
+The current entry point is the `workshop.recap_cli` module, run from the repo
+root. The original single-file `recap_compose.py` is still here and still works,
+but it lacks the custom-range flags; new work goes to the module.
+
 ```bash
-# Dry run — generates a local HTML preview, no posting
-python recap_compose.py
+# Dry run — previous calendar month, local HTML preview, no posting
+python -m workshop.recap_cli
+
+# Explicit month
+python -m workshop.recap_cli --year 2026 --month 2
+
+# Arbitrary date range (inclusive), instead of a month
+python -m workshop.recap_cli --start 2026-01-15 --end 2026-02-20
+
+# Skip the Last.fm backfill even if credentials are present
+python -m workshop.recap_cli --skip-lastfm
+
+# Choose deep dives non-interactively: ranks, names, "auto", or "none"
+python -m workshop.recap_cli --deep-dives "1,3"
 
 # Generate and post a draft to WordPress
-python recap_compose.py --post
+python -m workshop.recap_cli --post
 ```
+
+Without `--deep-dives`, the CLI prints the candidate pool and prompts for a pick.
 
 A draft is left in WordPress; nothing publishes automatically. You review and tweak in `wp-admin/edit.php?post_status=draft` before clicking Publish yourself.
 
@@ -57,16 +84,48 @@ The script creates several JSON caches next to itself so repeat runs are fast an
 - `itunes_art_cache.json` — iTunes Search album-art hot-link URLs
 - `tag_cache.json` — WP tag name → ID
 - `top_artists_history.json` — your top-10 artists per month, used for the frequency badges
+- `lastfm_scrobbles.json` — local mirror of your all-time Last.fm scrobbles
 
-All are listed in the repo `.gitignore`.
+All are gitignored **except** `lastfm_scrobbles.json`, which was committed by
+accident in `4af0525` and is still tracked.
 
 ## Status
 
-v0.1. Works, but rough edges:
+Works end to end — monthly recaps have been generated and drafted to WordPress.
+Rough edges:
 
-- The recap window (year, month) and category ID are hardcoded near the top of the script. Will move to CLI flags in the next pass.
+- The WP category ID is hardcoded (`CULTURE_CATEGORY_ID = 90` in
+  `workshop/recap/compose.py`). The recap window is not; it takes CLI flags.
 - Bandcamp lookup uses an undocumented endpoint (`/api/fancollection/1/collection_items`). Stable in practice but unsupported by Bandcamp.
-- Mobile / portable plays are not captured in MediaMonkey's `Played` table — only desktop plays. A Last.fm-scrobble backfill is planned.
+- Mobile / portable plays are missing from MediaMonkey's `Played` table. The
+  Last.fm backfill covers this: scrobbles are matched to library songs and
+  deduped against desktop plays with a per-track variable window, then merged
+  through an in-memory view. The MM5 file itself is never written to.
+- No test suite.
+
+## A note on time zones
+
+MediaMonkey stores `Played.PlayDate` as an OLE date in **UTC**, while a recap
+window means a *local* calendar month. `workshop/recap/db.py` keeps the two
+straight:
+
+- `local_dt_to_ole()` converts a window boundary local → UTC before it is
+  compared against `PlayDate`.
+- `ole_to_local_dt()` converts a `PlayDate` back to local wall-clock before it
+  is displayed or bucketed.
+- SQL that groups by day/week/month passes SQLite's `'localtime'` modifier.
+- `dt_to_ole` / `ole_to_dt` remain the raw, timezone-blind primitives, used only
+  where both sides are already UTC — the Last.fm scrobble path.
+
+Both conversions go through `astimezone()`, so DST is resolved per instant
+(the offset is −6h in January and −5h in August, not a fixed constant).
+
+This was previously wrong in two ways: month windows were compared against UTC
+`PlayDate` values as if they were local, and the Last.fm half of the merged
+stream filtered on local time while the MediaMonkey half filtered on UTC — so
+the two sources used boundaries hours apart. Correcting it moved 5 plays into
+August 2026 (1,651 → 1,656) and shifts some late-evening plays to the day they
+actually happened.
 
 ## Why "listen-here"
 

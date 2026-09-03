@@ -25,7 +25,7 @@ def stats(con: sqlite3.Connection, start_ole: float, end_ole: float) -> sqlite3.
 
 def busiest_day(con: sqlite3.Connection, start_ole: float, end_ole: float) -> sqlite3.Row:
     return con.execute("""
-        SELECT date(datetime((PlayDate - 25569)*86400, 'unixepoch')) AS d, COUNT(*) c
+        SELECT date(datetime((PlayDate - 25569)*86400, 'unixepoch', 'localtime')) AS d, COUNT(*) c
         FROM PlayedAll WHERE PlayDate >= ? AND PlayDate < ?
         GROUP BY d ORDER BY 2 DESC LIMIT 1
     """, (start_ole, end_ole)).fetchone()

@@ -11,6 +11,23 @@ import sqlite3
 
 OLE_EPOCH = datetime.datetime(1899, 12, 30)
 
+# MM5 stores Played.PlayDate as an OLE date in **UTC**, not local time.
+# (Verified against the library: the newest PlayDate reads hours ahead of the
+# local clock, and the hour-of-day histogram only makes sense once shifted.)
+#
+# Recap windows, by contrast, mean local calendar dates — "February 2026" is
+# the user's February, not UTC's. So every window boundary must be converted
+# local -> UTC before it is compared against PlayDate, and every PlayDate must
+# be converted UTC -> local before it is shown to a human.
+#
+# dt_to_ole / ole_to_dt are the raw, timezone-blind primitives; use them only
+# where both sides are already UTC (e.g. Last.fm scrobbles, which arrive as
+# UTC unix timestamps). Everywhere else use the *_local_* pair below.
+#
+# SQL that buckets PlayDate into days/weeks/months must likewise pass
+# SQLITE_LOCALTIME as a modifier so the buckets land on local calendar days.
+SQLITE_LOCALTIME = "localtime"
+
 
 def dt_to_ole(dt: datetime.datetime) -> float:
     """Convert a naive datetime to MM5's OLE-date (days since 1899-12-30)."""
@@ -20,6 +37,28 @@ def dt_to_ole(dt: datetime.datetime) -> float:
 def ole_to_dt(o: float) -> datetime.datetime:
     """Inverse of dt_to_ole."""
     return OLE_EPOCH + datetime.timedelta(days=o)
+
+
+def local_to_utc(dt_local: datetime.datetime) -> datetime.datetime:
+    """Naive local wall-clock -> naive UTC. DST-correct for the given instant."""
+    return dt_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+
+
+def utc_to_local(dt_utc: datetime.datetime) -> datetime.datetime:
+    """Naive UTC -> naive local wall-clock. DST-correct for the given instant."""
+    return (dt_utc.replace(tzinfo=datetime.timezone.utc)
+                  .astimezone()
+                  .replace(tzinfo=None))
+
+
+def local_dt_to_ole(dt_local: datetime.datetime) -> float:
+    """Local window boundary -> OLE date comparable against PlayDate."""
+    return dt_to_ole(local_to_utc(dt_local))
+
+
+def ole_to_local_dt(o: float) -> datetime.datetime:
+    """PlayDate -> local wall-clock datetime, for display and date bucketing."""
+    return utc_to_local(ole_to_dt(o))
 
 
 def open_connection(db_path: str) -> sqlite3.Connection:
