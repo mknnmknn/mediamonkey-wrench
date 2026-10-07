@@ -86,8 +86,7 @@ The script creates several JSON caches next to itself so repeat runs are fast an
 - `top_artists_history.json` — your top-10 artists per month, used for the frequency badges
 - `lastfm_scrobbles.json` — local mirror of your all-time Last.fm scrobbles
 
-All are gitignored **except** `lastfm_scrobbles.json`, which was committed by
-accident in `4af0525` and is still tracked.
+All are gitignored.
 
 ## Status
 
